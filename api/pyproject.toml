@@ -1,0 +1,24 @@
+[tool.black]
+line-length = 88
+target-version = ['py37']
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.idea
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.vscode
+    | _build
+    | buck-out
+    | build
+    | dist
+    | proto/generated
+    | terraform/\.terraform
+    | adhoc_scripts
+  )/
+)
+'''
