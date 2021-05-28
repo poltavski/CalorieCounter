@@ -25,6 +25,7 @@ from fastapi.responses import FileResponse
 # )
 from cv2 import cvtColor, imwrite, COLOR_RGB2BGR
 from fastapi.middleware.cors import CORSMiddleware
+from utils import FoodClassification, visualize_mask
 
 sys.setrecursionlimit(1500)
 logging.basicConfig(
@@ -44,12 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# car_detector = CarRecognition()
-# plate_detector = PlateRecognition()
-# letter_detector = LetterRecognition()
-# brand_classifier = BrandRecognition()
-# color_classifier = ColorRecognition()
-# direction_classifier = DirectionRecognition()
+food_classifier = FoodClassification()
 
 
 def analyse(image: Image):
@@ -108,7 +104,7 @@ def inference_static(image_name: str = "example1.jpg"):
 
 @app.get("/inference/demo")
 async def inference_demo(
-    url: str = "https://nsa39.casimages.com/img/2018/09/12/180912122808840707.jpg",
+    url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
 ):
     """
     Public endpoint for demo fashion analysis by GET request
@@ -121,16 +117,21 @@ async def inference_demo(
     """
     response = requests.get(url)
     image = Image.open(BytesIO(response.content)).convert("RGB")
+
+    label = food_classifier.predict(image)
+    print(label)
     result = analyse(image)
-    if result:
+    mask = visualize_mask(image, result)
+    print(mask)
+    if mask:
         # result_image = visualize_results(image, result)
-        result.save("result.jpg", "JPEG")
+        mask.save("result.jpg", "JPEG")
         return FileResponse("result.jpg")
 
 
 @app.get("/inference/url")
 async def inference_url(
-    url: str = "https://nsa39.casimages.com/img/2018/09/12/180912122808840707.jpg",
+    url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
 ):
     """
     Public endpoint for vehicle analysis by GET request
@@ -143,7 +144,6 @@ async def inference_url(
     response = requests.get(url)
     img = Image.open(BytesIO(response.content)).convert("RGB")
     result = analyse(img)
-    print(result)
     if result:
         return {"result": result, "status": 0}
     else:
@@ -170,4 +170,4 @@ async def inference_file(file: bytes = File(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8050, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, log_level="info")

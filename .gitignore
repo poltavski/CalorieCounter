@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+training/*
 
 # Distribution / packaging
 .Python
@@ -127,3 +128,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.idea/

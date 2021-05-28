@@ -2,5 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/models/u2net-http" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/models/u2nethttp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/models/u2nethttp/U-2-Net" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/models/u2nethttp/U2Net" vcs="Git" />
   </component>
 </project>
