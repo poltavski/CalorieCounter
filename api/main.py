@@ -50,12 +50,14 @@ async def ping():
 @app.get("/image/label")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
+    percentage: bool = True
 ):
     """
     ## Public endpoint for food image labeling by GET request.
 
     ### Args:
         url: image url
+        percentage: show probabilities in percentage
 
     ### Returns:
         Dictionary with image labels and probabilities
@@ -64,6 +66,9 @@ async def inference_demo(
         response = requests.get(url)
         image = Image.open(BytesIO(response.content)).convert("RGB")
         result = food_classifier.predict(image)
+        if percentage:
+            for key, value in result.items():
+                result[key] = f"{round(value*100)}%"
         return result
     except Exception as e:
         raise HTTPException(status_code=504, detail=f"Following error occurred on server: {e}. Please contact support")

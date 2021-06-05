@@ -25,7 +25,7 @@ class FoodClassification:
         labels = labels.cpu().detach().numpy()
         probs = probs.cpu().detach().numpy()
         results = {
-            FOOD_101_CLASSES[labels[i]]: probs[i]
+            FOOD_101_CLASSES[labels[i]]: round(float(probs[i]), 4)
             for i in range(n_top)
         }
         return results
