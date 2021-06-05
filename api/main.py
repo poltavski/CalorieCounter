@@ -39,8 +39,9 @@ food_classifier = FoodClassification()
 @app.get("/")
 async def ping():
     """
-    ping method for api call
-    Returns:
+    ## Ping api call.
+
+    ### Returns:
         200
     """
     return
@@ -71,22 +72,28 @@ async def inference_demo(
 @app.get("image/mask")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
+    food_restriction: bool = True,
 ):
     """
-    Public endpoint for demo fashion analysis by GET request
+    ## Public endpoint for food image segmentation by GET request.
 
-    Args:
+    ### Args:
         url: image url
 
-    Returns:
-        jpg image with recognized vehicle items
+    ### Returns:
+        Image (.jpg)
     """
     try:
         response = requests.get(url)
         image = Image.open(BytesIO(response.content)).convert("RGB")
+        if food_restriction:
+            result = food_classifier.predict(image)
+            not_food = True if result else False
         result = analyze(image)
         mask = visualize_mask(image, result)
-        if mask:
+        if not mask or not_food:
+            return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
+        elif mask:
             # result_image = visualize_results(image, result)
             date = datetime.now().strftime("%d-%m-%y_%H-%M-%S")
             filename = f"{IMAGE_FOLDER}/original_{date}"
@@ -94,8 +101,7 @@ async def inference_demo(
             mask.save(filename, "JPEG")
             mask.save(result, "JPEG")
             return FileResponse(result)
-        else:
-            return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
+
     except Exception as e:
         raise HTTPException(status_code=504, detail=f"Following error occurred on server: {e}. Please contact support")
 
