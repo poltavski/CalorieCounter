@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from models.u2nethttp import u2net
 from fastapi.responses import FileResponse
+
 # from utils import (
 # process_image,
 # process_plate_image,
@@ -35,7 +36,7 @@ logging.basicConfig(
     format="%(asctime)s: %(funcName)s - %(levelname)s - %(message)s",
 )
 
-app = FastAPI()
+app = FastAPI(title="CalorieCounter", version=0.3)
 app.mount("/_static", StaticFiles(directory="_static"), name="_static")
 app.add_middleware(
     CORSMiddleware,
@@ -68,7 +69,7 @@ def analyse(image: Image):
 
 
 @app.get("/")
-async def main():
+async def ping():
     """
     ping method for api call
     Returns:
@@ -77,29 +78,29 @@ async def main():
     return
 
 
-@app.get("/inference/static")
-def inference_static(image_name: str = "example1.jpg"):
-    """
-    get binary images method for api call
-    Returns:
-
-    """
-    try:
-        image = Image.open(f"_static/{image_name}", mode="r").convert("RGB")
-    except:
-        raise HTTPException(
-            500, detail={"status": f"{image_name} not found in static files on server"}
-        )
-    try:
-        result = analyse(image)
-    except:
-        raise HTTPException(500, detail={"status": f"Analysis failed on {image_name}"})
-    if result:
-        return {"result": result, "status": 0}
-    else:
-        raise HTTPException(
-            422, detail={"status": f"{image_name} returned empty results"}
-        )
+# @app.get("/inference/static")
+# def inference_static(image_name: str = "example1.jpg"):
+#     """
+#     get binary images method for api call
+#     Returns:
+#
+#     """
+#     try:
+#         image = Image.open(f"_static/{image_name}", mode="r").convert("RGB")
+#     except:
+#         raise HTTPException(
+#             500, detail={"status": f"{image_name} not found in static files on server"}
+#         )
+#     try:
+#         result = analyse(image)
+#     except:
+#         raise HTTPException(500, detail={"status": f"Analysis failed on {image_name}"})
+#     if result:
+#         return {"result": result, "status": 0}
+#     else:
+#         raise HTTPException(
+#             422, detail={"status": f"{image_name} returned empty results"}
+#         )
 
 
 @app.get("/inference/demo")
@@ -119,54 +120,55 @@ async def inference_demo(
     image = Image.open(BytesIO(response.content)).convert("RGB")
 
     label = food_classifier.predict(image)
-    print(label)
+
+    filename = f"{label['class']}.jpg"
+    print(filename)
     result = analyse(image)
     mask = visualize_mask(image, result)
-    print(mask)
     if mask:
         # result_image = visualize_results(image, result)
-        mask.save("result.jpg", "JPEG")
-        return FileResponse("result.jpg")
+        mask.save(filename, "JPEG")
+        return FileResponse(filename, filename=filename)
 
 
-@app.get("/inference/url")
-async def inference_url(
-    url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
-):
-    """
-    Public endpoint for vehicle analysis by GET request
-    Args:
-        url: image url
-
-    Returns:
-        json string of results
-    """
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content)).convert("RGB")
-    result = analyse(img)
-    if result:
-        return {"result": result, "status": 0}
-    else:
-        return {"result": "Given image returned empty results", "status": 1}
-
-
-@app.post("/inference/file")
-async def inference_file(file: bytes = File(...)):
-    """
-    Handles image file path and urls
-
-    Args:
-        file: file in binary formatnetstat -tulpen
-
-    Returns:
-        json string of results
-    """
-    img = Image.open(BytesIO(file)).convert("RGB")
-    result = analyse(img)
-    if result:
-        return {"result": result, "status": 0}
-    else:
-        return {"result": "Given image returned empty results", "status": 1}
+# @app.get("/inference/url")
+# async def inference_url(
+#     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
+# ):
+#     """
+#     Public endpoint for vehicle analysis by GET request
+#     Args:
+#         url: image url
+#
+#     Returns:
+#         json string of results
+#     """
+#     response = requests.get(url)
+#     img = Image.open(BytesIO(response.content)).convert("RGB")
+#     result = analyse(img)
+#     if result:
+#         return {"result": result, "status": 0}
+#     else:
+#         return {"result": "Given image returned empty results", "status": 1}
+#
+#
+# @app.post("/inference/file")
+# async def inference_file(file: bytes = File(...)):
+#     """
+#     Handles image file path and urls
+#
+#     Args:
+#         file: file in binary formatnetstat -tulpen
+#
+#     Returns:
+#         json string of results
+#     """
+#     img = Image.open(BytesIO(file)).convert("RGB")
+#     result = analyse(img)
+#     if result:
+#         return {"result": result, "status": 0}
+#     else:
+#         return {"result": "Given image returned empty results", "status": 1}
 
 
 if __name__ == "__main__":

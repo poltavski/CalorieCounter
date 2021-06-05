@@ -130,3 +130,9 @@ dmypy.json
 .pyre/
 
 .idea/
+
+models/u2nethttp/
+
+*.pth
+
+*.pt
