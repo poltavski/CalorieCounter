@@ -131,10 +131,6 @@ dmypy.json
 
 .idea/
 
-models/u2nethttp/
-
-*.pth
-
 *.pt
 
 api/images/

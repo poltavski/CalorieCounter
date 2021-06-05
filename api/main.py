@@ -5,6 +5,7 @@ import sys
 import uvicorn
 
 from datetime import datetime
+from models import FoodClassification, SalientObjectDetection
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -12,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
 from settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE
-from utils import FoodClassification, analyze, visualize_mask
+from utils import visualize_mask
 
 
 sys.setrecursionlimit(1500)
@@ -23,7 +24,7 @@ logging.basicConfig(
     format="%(asctime)s: %(funcName)s - %(levelname)s - %(message)s",
 )
 
-app = FastAPI(title="CalorieCounter", version=0.3)
+app = FastAPI(title="CalorieCounter", version=0.5)
 app.mount("/_static", StaticFiles(directory="_static"), name="_static")
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +35,7 @@ app.add_middleware(
 )
 
 food_classifier = FoodClassification()
+sod = SalientObjectDetection()
 
 
 @app.get("/")
@@ -98,7 +100,7 @@ async def inference_demo(
             food = True if result and next(iter(result.values())) > INFERENCE_THRESHOLD else False
             if food:
                 result_name = next(iter(result.keys()))
-        result = analyze(image)
+        result = sod.predict(image)
         mask = visualize_mask(image, result)
         if not mask or not food:
             return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
