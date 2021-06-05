@@ -1,0 +1,5 @@
+gunicorn
+numpy
+scikit-image
+Pillow
+torchvision
