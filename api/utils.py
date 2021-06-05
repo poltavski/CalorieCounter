@@ -1,9 +1,11 @@
-import torch
 import numpy as np
-from typing import Any, Dict, List, Union
-from settings import FOOD_101_CLASSES, FOOD_101_MODEL_PATH
+import torch
 import torchvision.transforms as transforms
+
+from models.u2nethttp import u2net
 from PIL import Image, ImageOps
+from settings import FOOD_101_CLASSES, FOOD_101_MODEL_PATH
+from typing import Any, Dict, List, Union
 
 
 class FoodClassification:
@@ -22,6 +24,25 @@ class FoodClassification:
         predicted_label = FOOD_101_CLASSES[pred]
         results["class"] = predicted_label
         return results
+
+
+def analyze(image: Image):
+    """Perform inference on image.
+
+    Args:
+        image: Image,
+            provided image
+
+    Returns:
+        dict of recognized properties of vehicle items.
+    """
+    # Ensure i,qge size is under 1024
+    if image.size[0] > 1024 or image.size[1] > 1024:
+        image.thumbnail((1024, 1024))
+
+    # Process Image
+    results = u2net.run(np.array(image))
+    return results
 
 
 def transform_image(image: np.array):
