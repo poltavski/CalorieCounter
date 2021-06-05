@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
-from settings import IMAGE_FOLDER, NOT_FOUND_IMAGE
+from settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE
 from utils import FoodClassification, analyze, visualize_mask
 
 
@@ -47,7 +47,7 @@ async def ping():
     return
 
 
-@app.get("image/label")
+@app.get("/image/label")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
 ):
@@ -69,7 +69,7 @@ async def inference_demo(
         raise HTTPException(status_code=504, detail=f"Following error occurred on server: {e}. Please contact support")
 
 
-@app.get("image/mask")
+@app.get("/image/mask")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     food_restriction: bool = True,
@@ -86,19 +86,23 @@ async def inference_demo(
     try:
         response = requests.get(url)
         image = Image.open(BytesIO(response.content)).convert("RGB")
+        food = not food_restriction
+        result_name = "result"
         if food_restriction:
             result = food_classifier.predict(image)
-            not_food = True if result else False
+            food = True if result and next(iter(result.values())) > INFERENCE_THRESHOLD else False
+            if food:
+                result_name = next(iter(result.keys()))
         result = analyze(image)
         mask = visualize_mask(image, result)
-        if not mask or not_food:
+        if not mask or not food:
             return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
         elif mask:
             # result_image = visualize_results(image, result)
             date = datetime.now().strftime("%d-%m-%y_%H-%M-%S")
-            filename = f"{IMAGE_FOLDER}/original_{date}"
-            result = f"{IMAGE_FOLDER}/result_{date}"
-            mask.save(filename, "JPEG")
+            filename = f"{IMAGE_FOLDER}/{date}_original.jpg"
+            result = f"{IMAGE_FOLDER}/{date}_{result_name}.jpg"
+            image.save(filename, "JPEG")
             mask.save(result, "JPEG")
             return FileResponse(result)
 

@@ -14,15 +14,20 @@ class FoodClassification:
         self.classes = FOOD_101_CLASSES
         print("Food classification loaded.")
 
-    def predict(self, image: np.array) -> Dict[str, Any]:
-        """Recognize food label from image."""
-        results = {}
+    def predict(self, image: np.array, n_top: int = 5) -> Dict[str, Any]:
+        """Recognize food labels/probabilities from image."""
         classifier = self.classifier
         tensor = transform_image(image=image)
         outputs = classifier.forward(tensor)
-        _, pred = outputs.max(1)
-        predicted_label = FOOD_101_CLASSES[pred]
-        results["class"] = predicted_label
+        sm = torch.nn.Softmax(dim=1)
+        probabilities = torch.flatten(sm(outputs))
+        probs, labels = torch.topk(probabilities, n_top)
+        labels = labels.cpu().detach().numpy()
+        probs = probs.cpu().detach().numpy()
+        results = {
+            FOOD_101_CLASSES[labels[i]]: probs[i]
+            for i in range(n_top)
+        }
         return results
 
 

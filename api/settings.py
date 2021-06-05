@@ -7,6 +7,7 @@ FOOD_101_CLASSES = None
 
 IMAGE_FOLDER = "images"
 NOT_FOUND_IMAGE = "default.jpg"
+INFERENCE_THRESHOLD = 0.5
 
 
 with open(FOOD_101_CLASSES_PATH, "rb") as filehandle:
