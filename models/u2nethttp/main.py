@@ -18,22 +18,22 @@ CORS(app)
 
 
 # Simple probe.
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def hello():
-    return 'Hello U^2-Net!'
+    return "Hello U^2-Net!"
 
 
 # Route http posts to this method
-@app.route('/', methods=['POST'])
+@app.route("/", methods=["POST"])
 def run():
     start = time.time()
 
     # Convert string of image data to uint8
-    if 'data' not in request.files:
-        return jsonify({'error': 'missing file param `data`'}), 400
-    data = request.files['data'].read()
+    if "data" not in request.files:
+        return jsonify({"error": "missing file param `data`"}), 400
+    data = request.files["data"].read()
     if len(data) == 0:
-        return jsonify({'error': 'empty image'}), 400
+        return jsonify({"error": "empty image"}), 400
 
     # Convert string data to PIL Image
     img = Image.open(io.BytesIO(data))
@@ -47,17 +47,17 @@ def run():
 
     # Save to buffer
     buff = io.BytesIO()
-    res.save(buff, 'PNG')
+    res.save(buff, "PNG")
     buff.seek(0)
 
     # Print stats
-    logging.info(f'Completed in {time.time() - start:.2f}s')
+    logging.info(f"Completed in {time.time() - start:.2f}s")
 
     # Return data
-    return send_file(buff, mimetype='image/png')
+    return send_file(buff, mimetype="image/png")
 
 
-if __name__ == '__main__':
-    os.environ['FLASK_ENV'] = 'development'
-    port = int(os.environ.get('PORT', 8080))
-    app.run(debug=True, host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    os.environ["FLASK_ENV"] = "development"
+    port = int(os.environ.get("PORT", 8080))
+    app.run(debug=True, host="0.0.0.0", port=port)

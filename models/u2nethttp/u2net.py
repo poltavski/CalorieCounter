@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(0, 'U-2-Net')
+
+sys.path.insert(0, "U-2-Net")
 
 from skimage import io, transform
 import torch
@@ -21,7 +22,7 @@ from models.u2nethttp.U2Net.data_loader import ToTensorLab
 # from models.u2nethttp.U2Net.model import U2NET  # full size version 173.6 MB
 from models.u2nethttp.U2Net.model import U2NETP  # small version u2net 4.7 MB
 
-model_dir = '../models/u2nethttp/U2Net/saved_models/u2net/u2netp.pth'
+model_dir = "../models/u2nethttp/U2Net/saved_models/u2net/u2netp.pth"
 
 print("Loading U-2-Net...")
 net = U2NETP(3, 1)
@@ -42,23 +43,19 @@ def preprocess(image):
     label_3 = np.zeros(image.shape)
     label = np.zeros(label_3.shape[0:2])
 
-    if (3 == len(label_3.shape)):
+    if 3 == len(label_3.shape):
         label = label_3[:, :, 0]
-    elif (2 == len(label_3.shape)):
+    elif 2 == len(label_3.shape):
         label = label_3
 
-    if (3 == len(image.shape) and 2 == len(label.shape)):
+    if 3 == len(image.shape) and 2 == len(label.shape):
         label = label[:, :, np.newaxis]
-    elif (2 == len(image.shape) and 2 == len(label.shape)):
+    elif 2 == len(image.shape) and 2 == len(label.shape):
         image = image[:, :, np.newaxis]
         label = label[:, :, np.newaxis]
 
     transform = transforms.Compose([RescaleT(320), ToTensorLab(flag=0)])
-    sample = transform({
-        'imidx': np.array([0]),
-        'image': image,
-        'label': label
-    })
+    sample = transform({"imidx": np.array([0]), "image": image, "label": label})
 
     return sample
 
@@ -67,7 +64,7 @@ def run(img):
     torch.cuda.empty_cache()
 
     sample = preprocess(img)
-    inputs_test = sample['image'].unsqueeze(0)
+    inputs_test = sample["image"].unsqueeze(0)
     inputs_test = inputs_test.type(torch.FloatTensor)
 
     if torch.cuda.is_available():
@@ -84,7 +81,7 @@ def run(img):
     # Convert to PIL Image
     predict = predict.squeeze()
     predict_np = predict.cpu().data.numpy()
-    im = Image.fromarray(predict_np * 255).convert('RGB')
+    im = Image.fromarray(predict_np * 255).convert("RGB")
 
     # Cleanup.
     del d1, d2, d3, d4, d5, d6, d7
