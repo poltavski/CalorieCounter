@@ -6,7 +6,12 @@
 - Salient object detection, based on [u^2 net](https://github.com/xuebinqin/U-2-Net) implementation
 - Web server implemented on [FastAPI](https://fastapi.tiangolo.com/)
 
-
+## Paper:
+[Calorie Counter: Recognition of food products,
+    ready meals and their caloric values
+    using neural networks.
+    Poltavskiy A.V.](https://github.com/poltavski/CalorieCounter/blob/dev/CalorieCounter_paper.pdf)
+  
 ## Results:
 
 <table>
@@ -55,7 +60,6 @@
 
 ### TO-DO:
  - Add pipenv setup
- - Add thesis
  - Build package
 
 ### Credits:
