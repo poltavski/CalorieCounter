@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from networks.u2net.data_loader import RescaleT
 from networks.u2net.data_loader import ToTensorLab
+
 # U2net full size version 173.6 MB vs small version u2netp 4.7 MB
 from networks.u2net.u2net import U2NET, U2NETP
 
@@ -29,8 +30,7 @@ class FoodClassification:
         labels = labels.cpu().detach().numpy()
         probs = probs.cpu().detach().numpy()
         results = {
-            FOOD_101_CLASSES[labels[i]]: round(float(probs[i]), 4)
-            for i in range(n_top)
+            FOOD_101_CLASSES[labels[i]]: round(float(probs[i]), 4) for i in range(n_top)
         }
         return results
 

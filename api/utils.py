@@ -24,7 +24,3 @@ def visualize_mask(
     if resize:
         result = result.resize(size, Image.ANTIALIAS)
     return result
-
-
-
-

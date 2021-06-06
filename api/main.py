@@ -52,7 +52,7 @@ async def ping():
 @app.get("/image/label")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
-    percentage: bool = True
+    percentage: bool = True,
 ):
     """
     ## Public endpoint for food image labeling by GET request.
@@ -73,7 +73,10 @@ async def inference_demo(
                 result[key] = f"{round(value*100)}%"
         return result
     except Exception as e:
-        raise HTTPException(status_code=504, detail=f"Following error occurred on server: {e}. Please contact support")
+        raise HTTPException(
+            status_code=504,
+            detail=f"Following error occurred on server: {e}. Please contact support",
+        )
 
 
 @app.get("/image/mask")
@@ -97,7 +100,11 @@ async def inference_demo(
         result_name = "result"
         if food_restriction:
             result = food_classifier.predict(image)
-            food = True if result and next(iter(result.values())) > INFERENCE_THRESHOLD else False
+            food = (
+                True
+                if result and next(iter(result.values())) > INFERENCE_THRESHOLD
+                else False
+            )
             if food:
                 result_name = next(iter(result.keys()))
         result = sod.predict(image)
@@ -114,7 +121,10 @@ async def inference_demo(
             return FileResponse(result)
 
     except Exception as e:
-        raise HTTPException(status_code=504, detail=f"Following error occurred on server: {e}. Please contact support")
+        raise HTTPException(
+            status_code=504,
+            detail=f"Following error occurred on server: {e}. Please contact support",
+        )
 
 
 if __name__ == "__main__":
