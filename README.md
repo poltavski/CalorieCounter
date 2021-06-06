@@ -1,12 +1,10 @@
 # Calorie Counter
 ### Calorie Counter is saas app bringing more consciousness into food habits
 
-Current version: alpha 0.5
-
-## Implemented:
-- Food classification
-- Salient object detection
-- Fastapi server
+## Implementation:
+- Food classification: dataset [food-101](https://www.kaggle.com/dansbecker/food-101), pytorch model [inceptionV3](https://pytorch.org/hub/pytorch_vision_inception_v3/)
+- Salient object detection, based on [u^2 net](https://github.com/xuebinqin/U-2-Net) implementation
+- Web server implemented on [FastAPI](https://fastapi.tiangolo.com/)
 
 
 ## Results:
@@ -54,3 +52,11 @@ Current version: alpha 0.5
     <td><img src="https://github.com/poltavski/CalorieCounter/blob/dev/api/images/06-06-21_11-02-17_caesar_salad.jpg?raw=true" width=500></td>
   </tr>
 </table>
+
+### TO-DO:
+ - Add pipenv setup
+ - Add thesis
+ - Build package
+
+### Credits:
+  Artem Poltavskiy 2021 (c). Visit my profile page for more: [poltavski.github.io](https://poltavski.github.io/)

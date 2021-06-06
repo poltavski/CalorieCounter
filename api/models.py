@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from networks.u2net.data_loader import RescaleT
 from networks.u2net.data_loader import ToTensorLab
-
 # U2net full size version 173.6 MB vs small version u2netp 4.7 MB
 from networks.u2net.u2net import U2NET, U2NETP
 
@@ -14,6 +13,7 @@ from typing import Any, Dict, List, Union
 
 
 class FoodClassification:
+    """Food classification model class."""
     def __init__(self):
         self.classifier = self.load_classifier(FOOD_101_MODEL_PATH)
         self.classes = FOOD_101_CLASSES
@@ -57,6 +57,7 @@ class FoodClassification:
 
 
 class SalientObjectDetection:
+    """Salient Object Detection u^2net model inference."""
     def __init__(self, u2netp: bool = True):
         self.net = U2NETP(3, 1) if u2netp else U2NET(3, 1)
         self.net.load_state_dict(torch.load(MODEL_DIR))

@@ -1,4 +1,3 @@
-import numpy as np
 import logging
 import requests
 import sys
@@ -74,7 +73,7 @@ async def inference_demo(
         return result
     except Exception as e:
         raise HTTPException(
-            status_code=504,
+            status_code=500,
             detail=f"Following error occurred on server: {e}. Please contact support",
         )
 
@@ -122,7 +121,7 @@ async def inference_demo(
 
     except Exception as e:
         raise HTTPException(
-            status_code=504,
+            status_code=500,
             detail=f"Following error occurred on server: {e}. Please contact support",
         )
 
