@@ -14,7 +14,7 @@ RUN pip install -r ./app/requirements.txt
 # Copy the remaining app files into the image
 COPY . /app/
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENTRYPOINT ["uvicorn"]
-CMD ["api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["api.main:app", "--host", "0.0.0.0", "--port", "8080"]
