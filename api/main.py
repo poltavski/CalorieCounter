@@ -24,11 +24,9 @@ logging.basicConfig(
     format="%(asctime)s: %(funcName)s - %(levelname)s - %(message)s",
 )
 
-static_dir = f"app/{STATIC_FOLDER}" if os.environ.get("DOCKER") else STATIC_FOLDER
-os.makedirs(static_dir, exist_ok=True)
-print(static_dir)
+os.makedirs(STATIC_FOLDER, exist_ok=True)
 app = FastAPI(title="CalorieCounter", version="1.0.0")
-app.mount("/_static", StaticFiles(directory=static_dir), name="_static")
+app.mount("/_static", StaticFiles(directory=STATIC_FOLDER), name="_static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -113,12 +111,12 @@ async def inference_demo(
         result = sod.predict(image)
         mask = visualize_mask(image, result)
         if not mask or not food:
-            return FileResponse(f"api/{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
+            return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
         elif mask:
             # result_image = visualize_results(image, result)
             date = datetime.now().strftime("%d-%m-%y_%H-%M-%S")
-            filename = f"api/{IMAGE_FOLDER}/{date}_original.jpg"
-            result = f"api/{IMAGE_FOLDER}/{date}_{result_name}.jpg"
+            filename = f"{IMAGE_FOLDER}/{date}_original.jpg"
+            result = f"{IMAGE_FOLDER}/{date}_{result_name}.jpg"
             image.save(filename, "JPEG")
             mask.save(result, "JPEG")
             return FileResponse(result)
