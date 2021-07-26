@@ -20,7 +20,6 @@ class FoodClassification:
     def __init__(self):
         self.classifier = self.load_classifier(FOOD_101_MODEL_PATH)
         self.classes = FOOD_101_CLASSES
-        print("Food classification loaded.")
 
     def predict(self, image: np.array, n_top: int = 5) -> Dict[str, Any]:
         """Recognize food labels/probabilities from image."""

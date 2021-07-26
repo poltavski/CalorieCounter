@@ -12,7 +12,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
-from api.settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE, STATIC_FOLDER
+from api.settings import (
+    IMAGE_FOLDER,
+    INFERENCE_THRESHOLD,
+    NOT_FOUND_IMAGE,
+    STATIC_FOLDER,
+)
 from api.utils import visualize_mask
 
 
