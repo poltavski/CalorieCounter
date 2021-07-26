@@ -1,13 +1,14 @@
 import numpy as np
 import torch
-from networks.u2net.data_loader import RescaleT
-from networks.u2net.data_loader import ToTensorLab
+
+from api.networks.u2net.data_loader import RescaleT
+from api.networks.u2net.data_loader import ToTensorLab
 
 # U2net full size version 173.6 MB vs small version u2netp 4.7 MB
-from networks.u2net.u2net import U2NET, U2NETP
+from api.networks.u2net.u2net import U2NET, U2NETP
 
 from PIL import Image
-from settings import FOOD_101_CLASSES, FOOD_101_MODEL_PATH, MODEL_DIR
+from api.settings import FOOD_101_CLASSES, FOOD_101_MODEL_PATH, MODEL_DIR
 from torch.autograd import Variable
 from torchvision import transforms
 from typing import Any, Dict, List, Union
@@ -19,7 +20,6 @@ class FoodClassification:
     def __init__(self):
         self.classifier = self.load_classifier(FOOD_101_MODEL_PATH)
         self.classes = FOOD_101_CLASSES
-        print("Food classification loaded.")
 
     def predict(self, image: np.array, n_top: int = 5) -> Dict[str, Any]:
         """Recognize food labels/probabilities from image."""
@@ -48,12 +48,17 @@ class FoodClassification:
             ]
         )
         tensor = my_transforms(image).unsqueeze(0)
-        tensor = tensor.cuda()
+        if torch.cuda.is_available():
+            tensor = tensor.cuda()
         return tensor
 
     @staticmethod
     def load_classifier(model_path):
-        model = torch.load(model_path)
+        model = (
+            torch.load(model_path, map_location=torch.device("cpu"))
+            if not torch.cuda.is_available()
+            else torch.load(model_path)
+        )
         model.eval()
         return model
 
@@ -63,7 +68,12 @@ class SalientObjectDetection:
 
     def __init__(self, u2netp: bool = True):
         self.net = U2NETP(3, 1) if u2netp else U2NET(3, 1)
-        self.net.load_state_dict(torch.load(MODEL_DIR))
+        model = (
+            torch.load(MODEL_DIR, map_location=torch.device("cpu"))
+            if not torch.cuda.is_available()
+            else torch.load(MODEL_DIR)
+        )
+        self.net.load_state_dict(model)
         if torch.cuda.is_available():
             self.net.cuda()
         self.net.eval()

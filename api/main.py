@@ -1,18 +1,24 @@
 import logging
+import os
 import requests
 import sys
 import uvicorn
 
 from datetime import datetime
-from models import FoodClassification, SalientObjectDetection
+from api.models import FoodClassification, SalientObjectDetection
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
-from settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE
-from utils import visualize_mask
+from api.settings import (
+    IMAGE_FOLDER,
+    INFERENCE_THRESHOLD,
+    NOT_FOUND_IMAGE,
+    STATIC_FOLDER,
+)
+from api.utils import visualize_mask
 
 
 sys.setrecursionlimit(1500)
@@ -23,8 +29,9 @@ logging.basicConfig(
     format="%(asctime)s: %(funcName)s - %(levelname)s - %(message)s",
 )
 
-app = FastAPI(title="CalorieCounter", version=0.5)
-app.mount("/_static", StaticFiles(directory="_static"), name="_static")
+os.makedirs(STATIC_FOLDER, exist_ok=True)
+app = FastAPI(title="CalorieCounter", version="1.0.0")
+app.mount("/_static", StaticFiles(directory=STATIC_FOLDER), name="_static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
