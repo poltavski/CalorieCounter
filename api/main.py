@@ -1,4 +1,5 @@
 import logging
+import os
 import requests
 import sys
 import uvicorn
@@ -11,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
-from api.settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE
+from api.settings import IMAGE_FOLDER, INFERENCE_THRESHOLD, NOT_FOUND_IMAGE, STATIC_FOLDER
 from api.utils import visualize_mask
 
 
@@ -23,8 +24,11 @@ logging.basicConfig(
     format="%(asctime)s: %(funcName)s - %(levelname)s - %(message)s",
 )
 
+static_dir = f"app/{STATIC_FOLDER}" if os.environ.get("DOCKER") else STATIC_FOLDER
+os.makedirs(static_dir, exist_ok=True)
+print(static_dir)
 app = FastAPI(title="CalorieCounter", version="1.0.0")
-app.mount("/_static", StaticFiles(directory="api/_static"), name="_static")
+app.mount("/_static", StaticFiles(directory=static_dir), name="_static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

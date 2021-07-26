@@ -5,6 +5,7 @@ FOOD_101_CLASSES_PATH = "api/networks/food-101/food101_classes.data"
 FOOD_101_MODEL_PATH = "api/networks/food-101/model_19.pt"
 FOOD_101_CLASSES = None
 
+STATIC_FOLDER = "api/_static"
 IMAGE_FOLDER = "images"
 NOT_FOUND_IMAGE = "default.jpg"
 INFERENCE_THRESHOLD = 0.5
