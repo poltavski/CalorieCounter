@@ -131,6 +131,4 @@ dmypy.json
 
 .idea/
 
-*.pt
-
 api/images/
