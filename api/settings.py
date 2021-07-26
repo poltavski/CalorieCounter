@@ -1,5 +1,6 @@
 """Settings for api service."""
 import pickle
+import os
 
 FOOD_101_CLASSES = None
 FOOD_101_CLASSES_PATH = "api/networks/food-101/food101_classes.data"
