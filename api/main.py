@@ -4,22 +4,17 @@ import requests
 import sys
 import uvicorn
 
-from datetime import datetime
 from api.models import FoodClassification, SalientObjectDetection
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 from PIL import Image
 from api.settings import (
-    IMAGE_FOLDER,
-    INFERENCE_THRESHOLD,
-    NOT_FOUND_IMAGE,
     STATIC_FOLDER,
 )
-from api.utils import visualize_mask
-
+from api.utils import label_processing, mask_processing
 
 sys.setrecursionlimit(1500)
 logging.basicConfig(
@@ -30,7 +25,7 @@ logging.basicConfig(
 )
 
 os.makedirs(STATIC_FOLDER, exist_ok=True)
-app = FastAPI(title="CalorieCounter", version="1.0.0")
+app = FastAPI(title="CalorieCounter", version="1.0.1")
 app.mount("/_static", StaticFiles(directory=STATIC_FOLDER), name="_static")
 app.add_middleware(
     CORSMiddleware,
@@ -55,7 +50,32 @@ async def ping():
     return
 
 
-@app.get("/image/label")
+@app.post("/image/label/byte")
+async def inference_demo(
+    byte_image: bytes = File(...),
+    percentage: bool = True,
+):
+    """
+    ## Public endpoint for food image labeling by POST request.
+
+    ### Args:
+        byte_image: image bytes
+        percentage: show probabilities in percentage
+
+    ### Returns:
+        Dictionary with image labels and probabilities
+    """
+    try:
+        image = Image.open(BytesIO(byte_image)).convert("RGB")
+        return label_processing(image, food_classifier, percentage)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Following error occurred on server: {e}. Please contact support",
+        )
+
+
+@app.get("/image/label/url")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     percentage: bool = True,
@@ -73,11 +93,7 @@ async def inference_demo(
     try:
         response = requests.get(url)
         image = Image.open(BytesIO(response.content)).convert("RGB")
-        result = food_classifier.predict(image)
-        if percentage:
-            for key, value in result.items():
-                result[key] = f"{round(value*100)}%"
-        return result
+        return label_processing(image, food_classifier, percentage)
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -85,7 +101,33 @@ async def inference_demo(
         )
 
 
-@app.get("/image/mask")
+@app.post("/image/mask/byte")
+async def inference_demo(
+    byte_image: bytes = File(...),
+    food_restriction: bool = True,
+):
+    """
+    ## Public endpoint for food image segmentation by POST request.
+
+    ### Args:
+        byte_image: image bytes
+
+    ### Returns:
+        Image (.jpg)
+    """
+    try:
+        image = Image.open(BytesIO(byte_image)).convert("RGB")
+        return FileResponse(
+            mask_processing(image, sod, food_classifier, food_restriction)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Following error occurred on server: {e}. Please contact support",
+        )
+
+
+@app.get("/image/mask/url")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     food_restriction: bool = True,
@@ -102,30 +144,9 @@ async def inference_demo(
     try:
         response = requests.get(url)
         image = Image.open(BytesIO(response.content)).convert("RGB")
-        food = not food_restriction
-        result_name = "result"
-        if food_restriction:
-            result = food_classifier.predict(image)
-            food = (
-                True
-                if result and next(iter(result.values())) > INFERENCE_THRESHOLD
-                else False
-            )
-            if food:
-                result_name = next(iter(result.keys()))
-        result = sod.predict(image)
-        mask = visualize_mask(image, result)
-        if not mask or not food:
-            return FileResponse(f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}")
-        elif mask:
-            # result_image = visualize_results(image, result)
-            date = datetime.now().strftime("%d-%m-%y_%H-%M-%S")
-            filename = f"{IMAGE_FOLDER}/{date}_original.jpg"
-            result = f"{IMAGE_FOLDER}/{date}_{result_name}.jpg"
-            image.save(filename, "JPEG")
-            mask.save(result, "JPEG")
-            return FileResponse(result)
-
+        return FileResponse(
+            mask_processing(image, sod, food_classifier, food_restriction)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
