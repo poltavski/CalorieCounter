@@ -2,11 +2,11 @@
 ### Calorie Counter is saas app bringing more consciousness into food habits
 
 # Table of contents
-- [Implementation](#implementation)
-- [Paper](#paper)
-- [Results](#results)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Implementation](#-implementation)
+- [Paper](#-paper)
+- [Results](#-results)
+- [Installation](#-installation)
+- [Usage](#-usage)
 
 ## ![gem](https://camo.githubusercontent.com/bf2f3b385cdfd8be9c670a2b1e7a7de8b1dd306d9f2acc3ffa0874fc2f5127b9/68747470733a2f2f6769746875622e6769746875626173736574732e636f6d2f696d616765732f69636f6e732f656d6f6a692f756e69636f64652f323731342e706e67) Implementation
 - Food classification: dataset [food-101](https://www.kaggle.com/dansbecker/food-101), pytorch model [inceptionV3](https://pytorch.org/hub/pytorch_vision_inception_v3/)
