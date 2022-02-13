@@ -53,7 +53,7 @@ async def ping():
 @app.post("/image/label/byte")
 async def inference_demo(
     byte_image: bytes = File(...),
-    percentage: bool = True,
+    percentage: bool = False,
 ):
     """
     ## Public endpoint for food image labeling by POST request.
@@ -78,7 +78,7 @@ async def inference_demo(
 @app.get("/image/label/url")
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
-    percentage: bool = True,
+    percentage: bool = False,
 ):
     """
     ## Public endpoint for food image labeling by GET request.

@@ -1,5 +1,11 @@
 """Settings for api service."""
 import pickle
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GCP_PROJECT_ID = os.getenv('GCP_PROJECT_ID')
 
 FOOD_101_CLASSES = None
 FOOD_101_CLASSES_PATH = "api/networks/food-101/food101_classes.data"
