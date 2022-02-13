@@ -3,7 +3,8 @@ import os
 import requests
 import sys
 import uvicorn
-
+from typing import Dict, Union
+from functools import wraps
 from api.models import FoodClassification, SalientObjectDetection
 from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,10 +40,23 @@ food_classifier = FoodClassification()
 sod = SalientObjectDetection()
 
 
+def error_handling(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Following error occurred on server: {e}. Please contact support",
+            )
+    return wrapper
+
+
 @app.get("/")
 async def ping():
     """
-    ## Ping api call.
+    ## Ping API call.
 
     ### Returns:
         200
@@ -51,10 +65,11 @@ async def ping():
 
 
 @app.post("/image/label/byte")
+@error_handling
 async def inference_demo(
     byte_image: bytes = File(...),
     percentage: bool = False,
-):
+) -> Union[Dict[str, float], Dict[str, str]]:
     """
     ## Public endpoint for food image labeling by POST request.
 
@@ -65,21 +80,16 @@ async def inference_demo(
     ### Returns:
         Dictionary with image labels and probabilities
     """
-    try:
-        image = Image.open(BytesIO(byte_image)).convert("RGB")
-        return label_processing(image, food_classifier, percentage)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Following error occurred on server: {e}. Please contact support",
-        )
+    image = Image.open(BytesIO(byte_image)).convert("RGB")
+    return label_processing(image, food_classifier, percentage)
 
 
 @app.get("/image/label/url")
+@error_handling
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     percentage: bool = False,
-):
+) -> Union[Dict[str, float], Dict[str, str]]:
     """
     ## Public endpoint for food image labeling by GET request.
 
@@ -90,22 +100,17 @@ async def inference_demo(
     ### Returns:
         Dictionary with image labels and probabilities
     """
-    try:
-        response = requests.get(url)
-        image = Image.open(BytesIO(response.content)).convert("RGB")
-        return label_processing(image, food_classifier, percentage)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Following error occurred on server: {e}. Please contact support",
-        )
+    response = requests.get(url)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    return label_processing(image, food_classifier, percentage)
 
 
 @app.post("/image/mask/byte")
+@error_handling
 async def inference_demo(
     byte_image: bytes = File(...),
     food_restriction: bool = True,
-):
+) -> FileResponse:
     """
     ## Public endpoint for food image segmentation by POST request.
 
@@ -115,23 +120,18 @@ async def inference_demo(
     ### Returns:
         Image (.jpg)
     """
-    try:
-        image = Image.open(BytesIO(byte_image)).convert("RGB")
-        return FileResponse(
-            mask_processing(image, sod, food_classifier, food_restriction)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Following error occurred on server: {e}. Please contact support",
-        )
+    image = Image.open(BytesIO(byte_image)).convert("RGB")
+    return FileResponse(
+        mask_processing(image, sod, food_classifier, food_restriction)
+    )
 
 
 @app.get("/image/mask/url")
+@error_handling
 async def inference_demo(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     food_restriction: bool = True,
-):
+) -> FileResponse:
     """
     ## Public endpoint for food image segmentation by GET request.
 
@@ -141,17 +141,11 @@ async def inference_demo(
     ### Returns:
         Image (.jpg)
     """
-    try:
-        response = requests.get(url)
-        image = Image.open(BytesIO(response.content)).convert("RGB")
-        return FileResponse(
-            mask_processing(image, sod, food_classifier, food_restriction)
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Following error occurred on server: {e}. Please contact support",
-        )
+    response = requests.get(url)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    return FileResponse(
+        mask_processing(image, sod, food_classifier, food_restriction)
+    )
 
 
 if __name__ == "__main__":
