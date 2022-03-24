@@ -3,12 +3,13 @@ import torch
 
 from api.networks.u2net.data_loader import RescaleT
 from api.networks.u2net.data_loader import ToTensorLab
+from api.networks.food_500.main_model import MODEL
 
 # U2net full size version 173.6 MB vs small version u2netp 4.7 MB
 from api.networks.u2net.u2net import U2NET, U2NETP
 
 from PIL import Image
-from api.settings import FOOD_101_CLASSES, FOOD_101_MODEL_PATH, MODEL_DIR
+from api.settings import MODEL_DIR
 from torch.autograd import Variable
 from torchvision import transforms
 from typing import Any, Dict, List, Union
@@ -17,9 +18,9 @@ from typing import Any, Dict, List, Union
 class FoodClassification:
     """Food classification model class."""
 
-    def __init__(self):
-        self.classifier = self.load_classifier(FOOD_101_MODEL_PATH)
-        self.classes = FOOD_101_CLASSES
+    def __init__(self, model_path, classes):
+        self.classifier = self.load_classifier(model_path)
+        self.classes = classes
 
     def predict(self, image: np.array, n_top: int = 5) -> Dict[str, Any]:
         """Recognize food labels/probabilities from image."""
@@ -32,7 +33,7 @@ class FoodClassification:
         labels = labels.cpu().detach().numpy()
         probs = probs.cpu().detach().numpy()
         results = {
-            FOOD_101_CLASSES[labels[i]]: round(float(probs[i]), 4) for i in range(n_top)
+            self.classes[labels[i]]: round(float(probs[i]), 4) for i in range(n_top)
         }
         return results
 
@@ -59,6 +60,51 @@ class FoodClassification:
             if not torch.cuda.is_available()
             else torch.load(model_path)
         )
+        model.eval()
+        return model
+
+
+class FoodClassification500:
+    """Food classification model class."""
+
+    def __init__(self, model_path, classes):
+        self.classifier = self.load_classifier(model_path, classes)
+        self.classes = classes
+
+    def predict(self, image: np.array, n_top: int = 5) -> Dict[str, Any]:
+        """Recognize food labels/probabilities from image."""
+        classifier = self.classifier
+        tensor = self.transform_image(image=image)
+        outputs = classifier.forward(tensor)
+        sm = torch.nn.Softmax(dim=1)
+        probabilities = torch.flatten(sm(outputs))
+        probs, labels = torch.topk(probabilities, n_top)
+        labels = labels.cpu().detach().numpy()
+        probs = probs.cpu().detach().numpy()
+        results = {
+            self.classes[labels[i]]: round(float(probs[i]), 4) for i in range(n_top)
+        }
+        print(results)
+        return results
+
+    @staticmethod
+    def transform_image(image: np.array):
+        """Sends tensor to cuda."""
+        my_transforms = transforms.Compose(
+            [
+                transforms.Resize(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
+        tensor = my_transforms(image).unsqueeze(0)
+        if torch.cuda.is_available():
+            tensor = tensor.cuda()
+        return tensor
+
+    @staticmethod
+    def load_classifier(model_path, classes):
+        model = MODEL(classes, model_path)
         model.eval()
         return model
 

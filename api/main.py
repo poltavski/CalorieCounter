@@ -5,7 +5,7 @@ import sys
 import uvicorn
 from typing import Dict, Union
 from functools import wraps
-from api.models import FoodClassification, SalientObjectDetection
+from api.models import FoodClassification, FoodClassification500, SalientObjectDetection
 from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -14,8 +14,12 @@ from io import BytesIO
 from PIL import Image
 from api.settings import (
     STATIC_FOLDER,
+    FOOD_101_CLASSES,
+    FOOD_101_MODEL_PATH,
+    FOOD_500_CLASSES,
+    FOOD_500_MODEL_PATH,
 )
-from api.utils import label_processing, mask_processing
+from api.utils import label_processing, mask_processing, get_food_table
 
 sys.setrecursionlimit(1500)
 logging.basicConfig(
@@ -36,7 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-food_classifier = FoodClassification()
+food_classifier_101 = FoodClassification(FOOD_101_MODEL_PATH, FOOD_101_CLASSES)
+# food_classifier_500 = FoodClassification500(FOOD_500_MODEL_PATH, FOOD_500_CLASSES)
 sod = SalientObjectDetection()
 
 
@@ -81,7 +86,7 @@ async def inference_demo(
         Dictionary with image labels and probabilities
     """
     image = Image.open(BytesIO(byte_image)).convert("RGB")
-    return label_processing(image, food_classifier, percentage)
+    return label_processing(image, food_classifier_101, percentage)
 
 
 @app.get("/image/label/url")
@@ -102,7 +107,7 @@ async def inference_demo(
     """
     response = requests.get(url)
     image = Image.open(BytesIO(response.content)).convert("RGB")
-    return label_processing(image, food_classifier, percentage)
+    return label_processing(image, food_classifier_101, percentage)
 
 
 @app.post("/image/mask/byte")
@@ -122,7 +127,7 @@ async def inference_demo(
     """
     image = Image.open(BytesIO(byte_image)).convert("RGB")
     return FileResponse(
-        mask_processing(image, sod, food_classifier, food_restriction)
+        mask_processing(image, sod, food_classifier_101, food_restriction)
     )
 
 
@@ -144,9 +149,23 @@ async def inference_demo(
     response = requests.get(url)
     image = Image.open(BytesIO(response.content)).convert("RGB")
     return FileResponse(
-        mask_processing(image, sod, food_classifier, food_restriction)
+        mask_processing(image, sod, food_classifier_101, food_restriction)
     )
 
+
+@app.get("/db/food")
+@error_handling
+async def inference_demo() -> dict:
+    """
+    ## Public endpoint for food image segmentation by GET request.
+
+    ### Args:
+        url: image url
+
+    ### Returns:
+        Image (.jpg)
+    """
+    return get_food_table()
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8080, log_level="info")
