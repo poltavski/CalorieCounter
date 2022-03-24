@@ -5,7 +5,7 @@ import sys
 import uvicorn
 from typing import Dict, Union
 from functools import wraps
-from api.models import FoodClassification, FoodClassification500, SalientObjectDetection
+from api.models import FoodClassification, SalientObjectDetection
 from fastapi import FastAPI, HTTPException, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -16,8 +16,6 @@ from api.settings import (
     STATIC_FOLDER,
     FOOD_101_CLASSES,
     FOOD_101_MODEL_PATH,
-    FOOD_500_CLASSES,
-    FOOD_500_MODEL_PATH,
 )
 from api.utils import label_processing, mask_processing, get_food_table
 
@@ -41,7 +39,6 @@ app.add_middleware(
 )
 
 food_classifier_101 = FoodClassification(FOOD_101_MODEL_PATH, FOOD_101_CLASSES)
-# food_classifier_500 = FoodClassification500(FOOD_500_MODEL_PATH, FOOD_500_CLASSES)
 sod = SalientObjectDetection()
 
 
