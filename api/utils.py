@@ -7,7 +7,8 @@ from api.settings import (
     RESULT_NAME,
 )
 from datetime import datetime
-
+from database.database import get_db
+from database.models import FoodModel
 
 def label_processing(image, food_classifier, percentage):
     result = food_classifier.predict(image)
@@ -68,3 +69,14 @@ def visualize_mask(
     if resize:
         result = result.resize(size, Image.ANTIALIAS)
     return result
+
+
+def get_food_table() -> list:
+    """Get food_nutrient table data
+
+    """
+    get_db()
+    query = FoodModel.select()
+    data = [food.food_group for food in query]
+    print(data)
+    return data

@@ -132,3 +132,6 @@ dmypy.json
 .idea/
 
 api/images/
+
+*.csv
+api/networks/
