@@ -30,16 +30,19 @@ class FoodModel(Model):
         database = db
         table_name = FOOD_TABLE
 
-    id = CharField()
+    id = IntegerField(unique=True, null=False, primary_key=True)
+    food_group = CharField()
+    calories = IntegerField()
+    id_book = CharField()
     name = CharField()
-    energy_with_dietary_fibre_kJ = IntegerField()
-    energy_without_dietary_fibre_kJ = IntegerField()
+    energy_with_dietary_fibre_kj = IntegerField()
+    energy_without_dietary_fibre_kj = IntegerField()
     moisture_g = FloatField()
     protein_g = FloatField()
     fat_g = FloatField()
     carbs_g = FloatField()
     sugars_g = FloatField()
-    food_group = FloatField()
+
 
 
 class UserModel(Model):

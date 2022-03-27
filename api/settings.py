@@ -1,4 +1,5 @@
 """Settings for api service."""
+import json
 import pickle
 import os
 from dotenv import load_dotenv
@@ -10,6 +11,8 @@ GCP_PROJECT_ID = os.getenv('GCP_PROJECT_ID')
 FOOD_101_CLASSES = None
 FOOD_101_CLASSES_PATH = "api/networks/food-101/food101_classes.data"
 FOOD_101_MODEL_PATH = "api/networks/food-101/model_19.pt"
+FOOD_101_MAPPING = None
+FOOD_101_MAPPING_PATH = "api/networks/food-101/food101_paired_with_db.json"
 
 FOOD_500_CLASSES = None
 FOOD_500_CLASSES_PATH = "api/networks/food_500/food_500_classes.txt"
@@ -31,6 +34,9 @@ DETALIZATION = 1
 with open(FOOD_101_CLASSES_PATH, "rb") as filehandle:
     # read the data as binary data stream
     FOOD_101_CLASSES = pickle.load(filehandle)
+
+with open(FOOD_101_MAPPING_PATH, "r") as f:
+    FOOD_101_MAPPING = json.load(f)
 
 with open(FOOD_500_CLASSES_PATH, "r") as f:
     lines = f.readlines()

@@ -152,7 +152,7 @@ async def inference_demo(
 
 @app.get("/db/food")
 @error_handling
-async def inference_demo() -> dict:
+async def inference_demo(food_category: str = None) -> dict:
     """
     ## Public endpoint for food image segmentation by GET request.
 
@@ -162,7 +162,7 @@ async def inference_demo() -> dict:
     ### Returns:
         Image (.jpg)
     """
-    return get_food_table()
+    return get_food_table(food_category)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8080, log_level="info")

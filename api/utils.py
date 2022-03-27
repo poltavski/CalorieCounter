@@ -1,14 +1,18 @@
 from PIL import Image, ImageOps
+from typing import Dict
+
 from api.settings import (
     DETALIZATION,
     INFERENCE_THRESHOLD,
     IMAGE_FOLDER,
     NOT_FOUND_IMAGE,
     RESULT_NAME,
+    FOOD_101_MAPPING
 )
 from datetime import datetime
 from database.database import get_db
 from database.models import FoodModel
+
 
 def label_processing(image, food_classifier, percentage):
     result = food_classifier.predict(image)
@@ -47,7 +51,7 @@ def mask_processing(image, sod, food_classifier, food_restriction):
 
 
 def visualize_mask(
-    orig_image, pred_image, resize: bool = False, size: tuple = (320, 320)
+        orig_image, pred_image, resize: bool = False, size: tuple = (320, 320)
 ):
     """Visualize mask on image. Resize by option
 
@@ -71,12 +75,27 @@ def visualize_mask(
     return result
 
 
-def get_food_table() -> list:
-    """Get food_nutrient table data
-
-    """
+def get_food_table(food_category: str = None, page: int = 1, num_records: int = 100) -> dict:
+    """Get food_nutrient table data."""
     get_db()
-    query = FoodModel.select()
-    data = [food.food_group for food in query]
-    print(data)
+    if food_category is not None:
+        where_criteria = FOOD_101_MAPPING.get(food_category)
+        if where_criteria:
+            query = FoodModel.select().where(FoodModel.id.in_(where_criteria))
+    else:
+        query = FoodModel.select()
+    # .paginate(page, num_records)
+    data = [[
+        # item.id,
+        item.food_group,
+        item.name,
+        item.calories,
+        item.protein_g,
+        item.fat_g,
+        item.carbs_g,
+        item.sugars_g,
+        item.moisture_g,
+        item.energy_with_dietary_fibre_kj,
+        item.energy_without_dietary_fibre_kj,
+    ] for item in query]
     return data
