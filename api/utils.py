@@ -1,5 +1,7 @@
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageDraw
 from typing import Dict
+import cv2
+import numpy as np
 
 from api.settings import (
     DETALIZATION,
@@ -22,7 +24,7 @@ def label_processing(image, food_classifier, percentage):
     return result
 
 
-def mask_processing(image, sod, food_classifier, food_restriction):
+def mask_processing(image, sod, food_classifier, food_restriction, resize_result, resize_width, resize_height):
     food = not food_restriction
     result_name = RESULT_NAME
     if food_restriction:
@@ -35,7 +37,14 @@ def mask_processing(image, sod, food_classifier, food_restriction):
         if food:
             result_name = next(iter(result.keys()))
     result = sod.predict(image)
-    mask = visualize_mask(image, result)
+
+    mask = visualize_mask(
+        image, result,
+        resize=resize_result,
+        width=resize_width,
+        height=resize_height
+    )
+
     if not mask or not food:
         return f"{IMAGE_FOLDER}/{NOT_FOUND_IMAGE}"
     elif mask:
@@ -46,12 +55,11 @@ def mask_processing(image, sod, food_classifier, food_restriction):
             filename = f"{IMAGE_FOLDER}/{date}_original.jpg"
             image.save(filename, "JPEG")
             mask.save(result, "JPEG")
-        print(result)
         return result
 
 
 def visualize_mask(
-        orig_image, pred_image, resize: bool = False, size: tuple = (320, 320)
+        orig_image, pred_image, resize: bool = False, width: int = 0, height: int = 0
 ):
     """Visualize mask on image. Resize by option
 
@@ -59,7 +67,8 @@ def visualize_mask(
         orig_image:
         pred_image:
         resize:
-        size:
+        width:
+        height:
 
     Returns:
         Image with mask
@@ -68,11 +77,42 @@ def visualize_mask(
     pred_image = ImageOps.colorize(
         pred_image.convert("L"), black="black", white="green"
     )
+
     pred_image = pred_image.resize(orig_image.size)
+    mask_area, image_ratio = get_mask_area(pred_image)
     result = Image.composite(orig_image, pred_image, mask)
+
     if resize:
-        result = result.resize(size, Image.ANTIALIAS)
+        if width and height:
+            new_size = (width, height)
+            result = result.resize(new_size, Image.ANTIALIAS)
+        elif width:
+            new_size = (width, int(width / image_ratio))
+            result = result.resize(new_size, Image.ANTIALIAS)
+        elif height:
+            new_size = (int(height * image_ratio), height)
+            result = result.resize(new_size, Image.ANTIALIAS)
+
+    ImageDraw.Draw(
+        result  # Image
+    ).text(
+        (10, 10),  # Coordinates
+        f"Recognized object area: {mask_area}% of image. (c) Calorie Counter",  # Text
+        (0, 0, 0)  # Color
+    )
     return result
+
+
+def get_mask_area(mask):
+    """Get mask area and size ratio."""
+    n = np.array(mask)
+    # Mask of green background pixels
+    bgMask = (n[:, :, 0:3] == [0, 0, 0]).all(2)
+    total_pixels = mask.width * mask.height
+    ratio = mask.width / mask.height
+    object_pixels = total_pixels - np.count_nonzero(bgMask)
+    mask_area = round(object_pixels / total_pixels, 3) * 100
+    return mask_area, ratio
 
 
 def get_food_table(food_category: str = None, page: int = 1, num_records: int = 100) -> dict:

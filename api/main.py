@@ -68,7 +68,7 @@ async def ping():
 
 @app.post("/image/label/byte")
 @error_handling
-async def inference_demo(
+async def label_by_file(
     byte_image: bytes = File(...),
     percentage: bool = False,
 ) -> Union[Dict[str, float], Dict[str, str]]:
@@ -88,7 +88,7 @@ async def inference_demo(
 
 @app.get("/image/label/url")
 @error_handling
-async def inference_demo(
+async def label_by_url(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     percentage: bool = False,
 ) -> Union[Dict[str, float], Dict[str, str]]:
@@ -109,9 +109,12 @@ async def inference_demo(
 
 @app.post("/image/mask/byte")
 @error_handling
-async def inference_demo(
+async def mask_by_file(
     byte_image: bytes = File(...),
     food_restriction: bool = True,
+    resize_result: bool = False,
+    resize_width: int = 500,
+    resize_height: int = 500
 ) -> FileResponse:
     """
     ## Public endpoint for food image segmentation by POST request.
@@ -124,15 +127,18 @@ async def inference_demo(
     """
     image = Image.open(BytesIO(byte_image)).convert("RGB")
     return FileResponse(
-        mask_processing(image, sod, food_classifier_101, food_restriction)
+        mask_processing(image, sod, food_classifier_101, food_restriction, resize_result, resize_width, resize_height)
     )
 
 
 @app.get("/image/mask/url")
 @error_handling
-async def inference_demo(
+async def mask_by_url(
     url: str = "https://i.pinimg.com/originals/36/a3/2e/36a32e2efcfce9a2d5daa5ebf1a7b31e.jpg",
     food_restriction: bool = True,
+    resize_result: bool = False,
+    resize_width: int = 500,
+    resize_height: int = 0
 ) -> FileResponse:
     """
     ## Public endpoint for food image segmentation by GET request.
@@ -146,13 +152,13 @@ async def inference_demo(
     response = requests.get(url)
     image = Image.open(BytesIO(response.content)).convert("RGB")
     return FileResponse(
-        mask_processing(image, sod, food_classifier_101, food_restriction)
+        mask_processing(image, sod, food_classifier_101, food_restriction, resize_result, resize_width, resize_height)
     )
 
 
 @app.get("/db/food")
 @error_handling
-async def inference_demo(food_category: str = None) -> dict:
+async def get_food_table(food_category: str = None) -> dict:
     """
     ## Public endpoint for food image segmentation by GET request.
 
